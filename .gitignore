@@ -1,2 +1,9 @@
-.env
+# Virtual environments (root or nested)
 env/
+venv/
+.venv/
+ENV/
+**/env/
+**/venv/
+**/.venv/
+**/ENV/
