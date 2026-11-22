@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="EDIS turns enterprise documents into cited answers, structured analysis and clear version comparisons." />
+  <meta name="color-scheme" content="dark" />
+  <title>EDIS | Enterprise Document Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="page-glow glow-one" aria-hidden="true"></div>
+  <div class="page-glow glow-two" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="nav-wrap">
+      <a class="brand" href="#top" aria-label="EDIS home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 3.75h7.5L19 8.25v12H7a2 2 0 0 1-2-2V5.75a2 2 0 0 1 2-2Z"/><path d="M14 4v5h5M9 13h6M9 16.5h4"/></svg>
+        </span>
+        <span class="brand-copy"><strong>EDIS</strong><small>Document Intelligence</small></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="/docs">Docs</a>
+      </nav>
+
+      <a class="button button-small button-primary nav-cta" href="#workspace">Get Started</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero section-wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="eyebrow-dot"></span> Enterprise knowledge, made useful</span>
+        <h1 id="hero-title">Turn complex documents into <span>answers you can trust.</span></h1>
+        <p>Upload your files or load a server dataset, then ask questions, analyze content and compare versions—with source-grounded results.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#workspace">Get Started</a>
+          <a class="button button-secondary" href="#how-it-works">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5V7Z"/></svg>
+            View Demo
+          </a>
+        </div>
+        <div class="hero-proof" aria-label="Supported capabilities">
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Cited answers</span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> PDF, DOCX &amp; TXT</span>
+          <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg> Local demo mode</span>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="visual-window glass-card">
+          <div class="window-bar"><i></i><i></i><i></i><span>EDIS Workspace</span></div>
+          <div class="visual-body">
+            <div class="mini-sidebar">
+              <span class="mini-logo"></span>
+              <span></span><span></span><span></span>
+            </div>
+            <div class="mini-content">
+              <div class="mini-label">DOCUMENT CHAT</div>
+              <div class="mini-question">What changed in customer satisfaction?</div>
+              <div class="mini-answer">
+                <span class="spark">✦</span>
+                <div><b>Customer satisfaction improved to 90%.</b><p>The report attributes the gain to faster response times and fewer support tickets.</p></div>
+              </div>
+              <div class="mini-citations"><span>Quarterly report · p.1</span><span>2 sources</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card float-security"><span>✓</span><div><b>Grounded</b><small>Source citations</small></div></div>
+        <div class="float-card float-files"><span>3</span><div><b>File types</b><small>PDF, DOCX &amp; TXT</small></div></div>
+      </div>
+    </section>
+
+    <section id="workspace" class="workspace-section section-wrap" aria-labelledby="workspace-title">
+      <div class="section-heading centered">
+        <span class="eyebrow">Interactive workspace</span>
+        <h2 id="workspace-title">Your document intelligence command center</h2>
+        <p>Choose a workflow and turn static files into practical, traceable knowledge.</p>
+      </div>
+
+      <div class="app-shell glass-card">
+        <div class="app-shell-head">
+          <div class="app-title"><span class="status-dot"></span><strong>EDIS Workspace</strong><span>Secure session</span></div>
+          <span class="mode-pill">AI-assisted</span>
+        </div>
+
+        <nav class="tool-tabs" role="tablist" aria-label="Document operations">
+          <button class="tab active" data-tab="chat" role="tab" aria-selected="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v11H9l-4 3V5Z"/><path d="M9 9h6M9 12h4"/></svg>
+            Document Chat
+          </button>
+          <button class="tab" data-tab="analyze" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4M10 12h5M10 16h5"/></svg>
+            Analysis
+          </button>
+          <button class="tab" data-tab="compare" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h11M16 4l3 3-3 3M16 17H5M8 14l-3 3 3 3"/></svg>
+            Compare
+          </button>
+        </nav>
+
+        <section id="chat" class="panel active" aria-label="Document chat">
+          <div class="workflow-grid">
+            <article class="tool-card source-card">
+              <div class="card-kicker">Knowledge base</div>
+              <h3>Add your documents</h3>
+              <p>Upload files from your device or instantly index the configured server dataset.</p>
+
+              <label class="upload-zone" for="chat-files">
+                <span class="upload-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M5 14v5h14v-5"/></svg>
+                </span>
+                <span class="upload-title">Drag &amp; drop or <strong>browse</strong></span>
+                <span class="upload-meta">PDF, DOCX or TXT · up to 5 files</span>
+                <input id="chat-files" class="file-control" type="file" accept=".pdf,.docx,.txt" multiple />
+              </label>
+
+              <div class="source-actions">
+                <button id="upload-btn" class="button button-primary" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M5 14v5h14v-5"/></svg>
+                  Upload Documents
+                </button>
+                <span class="action-divider">or</span>
+                <button id="dataset-btn" class="button button-secondary" type="button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4V7ZM8 3h8v4H8V3Z"/><path d="M9 11h6M9 15h4"/></svg>
+                  Load Dataset
+                </button>
+              </div>
+
+              <div class="dataset-note">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 11v5M12 8h.01"/></svg>
+                <span><strong>Load Dataset</strong> uses supported files from <code>documents/</code>.</span>
+              </div>
+              <p id="session-status" class="session-status" aria-live="polite">No knowledge base created yet.</p>
+            </article>
+
+            <article class="tool-card question-card">
+              <div class="card-kicker">Ask with context</div>
+              <h3>Question your knowledge base</h3>
+              <p>Get a grounded response with the most relevant source passages attached.</p>
+              <div class="user-composer">
+                <div class="avatar avatar-user">You</div>
+                <label for="question">
+                  <span>Your question</span>
+                  <textarea id="question" rows="5" placeholder="What are the main findings in these documents?"></textarea>
+                </label>
+              </div>
+              <button id="ask-btn" class="button button-primary ask-button" type="button">
+                <span>Ask EDIS</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-4 14-3-6-7-1Z"/></svg>
+              </button>
+              <p class="session-line">Active session <code id="session-id">—</code></p>
+            </article>
+          </div>
+
+          <article class="chat-panel">
+            <div class="chat-panel-head">
+              <div><span class="avatar avatar-ai">E</span><div><strong>EDIS Assistant</strong><small>Grounded in your knowledge base</small></div></div>
+              <span class="online-pill"><i></i> Ready</span>
+            </div>
+            <div class="assistant-message">
+              <span class="sparkle" aria-hidden="true">✦</span>
+              <div class="message-content">
+                <div class="typing-indicator" aria-label="EDIS is preparing an answer"><i></i><i></i><i></i></div>
+                <pre id="answer">Upload documents or load the dataset, then ask your first question.</pre>
+              </div>
+            </div>
+            <div class="citations-block">
+              <div class="citations-title"><span>Sources &amp; citations</span><small>Open a citation to inspect its excerpt</small></div>
+              <div id="sources" class="sources">No citations yet.</div>
+            </div>
+          </article>
+        </section>
+
+        <section id="analyze" class="panel" aria-label="Document analysis">
+          <div class="single-workflow">
+            <article class="tool-card">
+              <div class="card-kicker">Document analysis</div>
+              <h3>Understand a document at a glance</h3>
+              <p>Extract its summary, keywords, language and page count in one pass.</p>
+              <label class="upload-zone compact" for="analyze-file">
+                <span class="upload-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M5 14v5h14v-5"/></svg></span>
+                <span class="upload-title">Drag &amp; drop or <strong>browse</strong></span>
+                <input id="analyze-file" class="file-control" type="file" accept=".pdf,.docx,.txt" />
+              </label>
+              <button id="analyze-btn" class="button button-primary" type="button">Analyze Document</button>
+            </article>
+            <article class="output-card"><span class="output-label">Analysis result</span><pre id="analyze-result">Upload a document to start.</pre></article>
+          </div>
+        </section>
+
+        <section id="compare" class="panel" aria-label="Compare documents">
+          <div class="single-workflow">
+            <article class="tool-card">
+              <div class="card-kicker">Version comparison</div>
+              <h3>See exactly what changed</h3>
+              <p>Select a reference and an updated document to compare their page-level content.</p>
+              <div class="compare-grid">
+                <label class="mini-upload" for="reference-file">
+                  <span>Reference document</span>
+                  <input id="reference-file" type="file" accept=".pdf,.docx,.txt" />
+                </label>
+                <div class="compare-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12M15 5l3 3-3 3M18 16H6M9 13l-3 3 3 3"/></svg></div>
+                <label class="mini-upload" for="updated-file">
+                  <span>Updated document</span>
+                  <input id="updated-file" type="file" accept=".pdf,.docx,.txt" />
+                </label>
+              </div>
+              <button id="compare-btn" class="button button-primary" type="button">Compare Documents</button>
+            </article>
+            <article class="output-card"><span class="output-label">Comparison result</span><pre id="compare-result">Choose two documents to start.</pre></article>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="features" class="features-section section-wrap" aria-labelledby="features-title">
+      <div class="section-heading">
+        <span class="eyebrow">Built for serious document work</span>
+        <h2 id="features-title">From raw files to usable intelligence</h2>
+        <p>One focused workspace for the workflows that matter most.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card glass-card">
+          <span class="feature-icon blue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v11H9l-4 3V5Z"/><path d="M9 9h6M9 12h4"/></svg></span>
+          <h3>Grounded document chat</h3>
+          <p>Ask natural-language questions and trace every answer back to relevant document passages.</p>
+        </article>
+        <article class="feature-card glass-card">
+          <span class="feature-icon violet"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7V3Z"/><path d="M14 3v5h4M10 12h5M10 16h3"/></svg></span>
+          <h3>Instant analysis</h3>
+          <p>Turn a long file into a concise summary, keywords, language and page-level metadata.</p>
+        </article>
+        <article class="feature-card glass-card">
+          <span class="feature-icon cyan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h11M16 4l3 3-3 3M16 17H5M8 14l-3 3 3 3"/></svg></span>
+          <h3>Version comparison</h3>
+          <p>Compare reference and updated documents to surface page-by-page changes clearly.</p>
+        </article>
+        <article class="feature-card glass-card">
+          <span class="feature-icon green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10Z"/><path d="m9 12 2 2 4-5"/></svg></span>
+          <h3>Session-scoped storage</h3>
+          <p>Keep indexed content and chat history organized inside isolated, owner-scoped sessions.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="how-section" aria-labelledby="how-title">
+      <div class="section-wrap">
+        <div class="section-heading centered">
+          <span class="eyebrow">How it works</span>
+          <h2 id="how-title">Three steps from documents to decisions</h2>
+          <p>A simple workflow with transparent results at every stage.</p>
+        </div>
+        <div class="steps-grid">
+          <article class="step-card">
+            <span class="step-number">01</span>
+            <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M5 14v5h14v-5"/></svg></div>
+            <h3>Add your knowledge</h3>
+            <p>Upload selected files or index the trusted documents already available on the server.</p>
+          </article>
+          <article class="step-card">
+            <span class="step-number">02</span>
+            <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M6 4h12v16H6V4Z"/><path d="M9 11h6M9 15h4"/></svg></div>
+            <h3>EDIS structures it</h3>
+            <p>Documents are parsed, split into meaningful chunks and indexed for fast retrieval.</p>
+          </article>
+          <article class="step-card">
+            <span class="step-number">03</span>
+            <div class="step-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v11H9l-4 3V5Z"/><path d="m9 11 2 2 4-4"/></svg></div>
+            <h3>Explore with confidence</h3>
+            <p>Ask, analyze or compare and receive focused outputs backed by visible source context.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section section-wrap">
+      <div class="cta-card">
+        <div><span class="eyebrow">Start exploring</span><h2>Put your documents to work.</h2><p>Build a knowledge base and ask your first grounded question.</p></div>
+        <a class="button button-light" href="#workspace">Open Workspace</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="section-wrap footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3.75h7.5L19 8.25v12H7a2 2 0 0 1-2-2V5.75a2 2 0 0 1 2-2Z"/><path d="M14 4v5h5M9 13h6M9 16.5h4"/></svg></span><span class="brand-copy"><strong>EDIS</strong><small>Document Intelligence</small></span></a>
+        <p>AI-assisted document workflows with transparent source context.</p>
+      </div>
+      <div class="footer-column"><h3>Product</h3><a href="#workspace">Document Chat</a><a href="#workspace">Analysis</a><a href="#workspace">Comparison</a></div>
+      <div class="footer-column"><h3>Resources</h3><a href="/docs">API Docs</a><a href="#how-it-works">How it works</a><a href="#features">Features</a></div>
+      <div class="footer-column"><h3>Contact</h3><a href="/api/health">Service status</a><a href="#workspace">Get started</a><a href="#top">Back to top</a></div>
+    </div>
+    <div class="section-wrap footer-bottom"><span>© 2026 Enterprise Document Intelligence System</span><span>Built for clear, grounded document work.</span></div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

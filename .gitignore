@@ -7,3 +7,7 @@ ENV/
 **/venv/
 **/.venv/
 **/ENV/
+# Secrets
+.env
+.env.*
+!.env.example
