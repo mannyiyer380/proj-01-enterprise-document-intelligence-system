@@ -27,5 +27,6 @@ runtime_data/
 # Local-only data
 documents_archive/
 
-# OS files
+# Editor / OS files
+.vscode/
 .DS_Store
