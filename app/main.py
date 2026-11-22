@@ -4,31 +4,56 @@ from __future__ import annotations
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
+from time import perf_counter
 
 from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from groq import APIConnectionError, APITimeoutError, RateLimitError
+from langchain_core.exceptions import OutputParserException
+from openai import APIConnectionError as OpenAIConnectionError
+from openai import APITimeoutError as OpenAITimeoutError
+from openai import AuthenticationError as OpenAIAuthenticationError
+from openai import RateLimitError as OpenAIRateLimitError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from structlog import get_logger
+from structlog.contextvars import bind_contextvars, reset_contextvars
 
+from app.api.auth_routes import router as auth_router
 from app.api.routes import router
-from app.utils.config import Settings
-from app.utils.custom_logger import DocumentIntelligenceLogger
-from app.services.portal import PortalService
+from app.services.accounts import AccountStore, LOGIN_COOKIE
+from app.config.config import Settings
+from app.utils.custom_logger import LOGGER_NAME, DocumentIntelligenceLogger
+from app.services.document_workflows import PortalService
 
 UI = Path(__file__).resolve().parent / "ui"
+logger = get_logger(LOGGER_NAME)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     conf = (settings or Settings.from_env()).validate()
     portal = PortalService(conf)
-    logger_factory = DocumentIntelligenceLogger(conf.storage_dir / "logs")
-    logger = logger_factory.get_logger("document_portal")
+    accounts = AccountStore(conf.storage_root / "accounts.sqlite3") if conf.auth_mode == "sqlite" else None
 
     @asynccontextmanager
-    async def lifespan(_: FastAPI):
-        yield
-        logger_factory.close()
+    async def lifespan(application: FastAPI):
+        with DocumentIntelligenceLogger() as logger_factory:
+            run_logger = logger_factory.get_logger()
+            run_logger.info(
+                "app_started",
+                chat_provider=conf.chat_provider,
+                analysis_provider=conf.llm_provider,
+                embedding_provider=conf.embedding_provider,
+                vector_backend=conf.vector_backend,
+            )
+            try:
+                if accounts is not None:
+                    accounts.initialize()
+                yield
+            finally:
+                run_logger.info("app_stopped")
 
     app = FastAPI(
         title="Document Intelligence Portal V2",
@@ -37,6 +62,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = conf
     app.state.portal = portal
+    app.state.accounts = accounts
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(conf.cors_origins),
@@ -46,26 +72,109 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.mount("/static", StaticFiles(directory=UI), name="static")
     app.include_router(router)
+    app.include_router(auth_router)
 
     @app.get("/", include_in_schema=False)
     def index() -> FileResponse:
         return FileResponse(UI / "index.html", headers={"Cache-Control": "no-store"})
 
+    @app.get("/workspace", include_in_schema=False, response_model=None)
+    def workspace(request: Request) -> FileResponse | RedirectResponse:
+        if accounts is not None and accounts.session_owner(request.cookies.get(LOGIN_COOKIE)) is None:
+            return RedirectResponse("/login", headers={"Cache-Control": "no-store"})
+        return FileResponse(UI / "workspace.html", headers={"Cache-Control": "no-store"})
+
+    @app.get("/login", include_in_schema=False, response_model=None)
+    @app.get("/signup", include_in_schema=False, response_model=None)
+    def account_page(request: Request) -> FileResponse | RedirectResponse:
+        if accounts is None or accounts.session_owner(request.cookies.get(LOGIN_COOKIE)):
+            return RedirectResponse("/workspace", headers={"Cache-Control": "no-store"})
+        return FileResponse(UI / "account.html", headers={"Cache-Control": "no-store"})
+
+    @app.exception_handler(StarletteHTTPException)
+    async def log_http_exception(request: Request, exc: StarletteHTTPException):
+        if exc.status_code >= 500:
+            logger.warning("handled_http_error", status_code=exc.status_code)
+        return await http_exception_handler(request, exc)
+
+    @app.exception_handler(RateLimitError)
+    @app.exception_handler(OpenAIRateLimitError)
+    async def handle_model_rate_limit(request: Request, exc: RateLimitError | OpenAIRateLimitError):
+        provider = "OpenAI" if isinstance(exc, OpenAIRateLimitError) else "Groq"
+        retry_after = exc.response.headers.get("retry-after", "").strip()
+        headers = {}
+        detail = f"{provider} rate limit reached. Please try again later."
+        if isinstance(exc, OpenAIRateLimitError) and exc.code == "insufficient_quota":
+            detail = "OpenAI API quota is exhausted. Check your API usage or billing."
+        elif retry_after.isascii() and retry_after.isdecimal():
+            headers["Retry-After"] = retry_after
+            detail = f"{provider} rate limit reached. Try again in about {retry_after} seconds."
+        logger.warning(f"{provider.lower()}_rate_limit", retry_after=headers.get("Retry-After"))
+        return JSONResponse(status_code=429, content={"detail": detail}, headers=headers)
+
+    @app.exception_handler(APIConnectionError)
+    @app.exception_handler(OpenAIConnectionError)
+    async def handle_model_connection_error(request: Request, exc: APIConnectionError | OpenAIConnectionError):
+        provider = "OpenAI" if isinstance(exc, OpenAIConnectionError) else "Groq"
+        timed_out = isinstance(exc, (APITimeoutError, OpenAITimeoutError))
+        status_code = 504 if timed_out else 502
+        detail = f"{provider} did not respond in time." if timed_out else f"EDIS could not reach {provider}."
+        logger.warning(f"{provider.lower()}_connection_error", error_type=type(exc).__name__, status_code=status_code)
+        return JSONResponse(
+            status_code=status_code, content={"detail": f"{detail} Please try again."},
+        )
+
+    @app.exception_handler(OpenAIAuthenticationError)
+    async def handle_openai_auth_error(request: Request, exc: OpenAIAuthenticationError):
+        logger.warning("openai_authentication_failed", status_code=502)
+        return JSONResponse(
+            status_code=502,
+            content={"detail": "OpenAI rejected the API credentials. Check OPENAI_API_KEY in the server configuration."},
+        )
+
+    @app.exception_handler(OutputParserException)
+    async def handle_invalid_model_output(request: Request, exc: OutputParserException):
+        logger.warning("invalid_model_output", status_code=502)
+        return JSONResponse(
+            status_code=502,
+            content={"detail": "The AI returned an invalid response. Please try again."},
+        )
+
     @app.middleware("http")
     async def request_id(request: Request, call_next):
         cid = uuid.uuid4().hex[:12]
+        started_at = perf_counter()
+        context = bind_contextvars(request_id=cid)
         try:
-            response = await call_next(request)
-        except Exception:
-            logger.exception(
-                "unhandled_request_error",
-                request_id=cid,
-                path=request.url.path,
+            try:
+                origin = request.headers.get("origin")
+                expected_origin = f"{request.url.scheme}://{request.url.netloc}"
+                if accounts is not None and request.method in ("POST", "DELETE") and origin and origin != expected_origin:
+                    response = JSONResponse(status_code=403, content={"detail": "Use EDIS from the same origin."})
+                else:
+                    response = await call_next(request)
+            except Exception:
+                logger.exception("unhandled_request_error")
+                response = JSONResponse(
+                    status_code=500,
+                    content={"detail": "Internal server error", "request_id": cid},
+                )
+            route = request.scope.get("route")
+            log_request = logger.warning if response.status_code >= 400 else logger.info
+            log_request(
+                "http_request",
+                method=request.method,
+                route=getattr(route, "path", None),
+                status_code=response.status_code,
+                duration_ms=round((perf_counter() - started_at) * 1000, 1),
             )
-            return JSONResponse(status_code=500, content={"detail": "Internal server error", "request_id": cid})
-        response.headers["X-Request-ID"] = cid
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        return response
+            response.headers["X-Request-ID"] = cid
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            if request.url.path.startswith("/api/auth/"):
+                response.headers["Cache-Control"] = "no-store"
+            return response
+        finally:
+            reset_contextvars(**context)
 
     return app
 

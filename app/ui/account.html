@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Sign in | EDIS</title>
+  <link rel="stylesheet" href="/static/styles.css?v=account-1" />
+  <script src="/static/account.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-wrap">
+      <a class="brand" href="/" aria-label="EDIS home">
+        <span class="brand-mark" aria-hidden="true">E</span>
+        <span class="brand-copy"><strong>EDIS</strong><small>Document Intelligence</small></span>
+      </a>
+      <a class="button button-small button-secondary" href="/">Back to Home</a>
+    </div>
+  </header>
+  <main class="account-page section-wrap" aria-labelledby="account-title">
+    <section class="tool-card account-card">
+      <h1 id="account-title">Sign in to EDIS</h1>
+      <form id="account-form" method="post" action="/api/auth/login">
+        <label for="username">Username</label>
+        <input id="username" name="username" required minlength="3" maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false" />
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required maxlength="128" autocomplete="current-password" />
+        <p id="password-hint" class="account-hint" hidden>Use at least 15 characters.</p>
+        <button id="account-submit" class="button button-primary" type="submit">Sign in</button>
+        <p id="account-error" class="account-error" role="alert" hidden></p>
+      </form>
+      <p class="account-alternate"><span id="account-prompt">New to EDIS?</span> <a id="account-link" href="/signup">Create an account</a></p>
+    </section>
+  </main>
+</body>
+</html>
