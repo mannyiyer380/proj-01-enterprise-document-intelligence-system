@@ -1,25 +1,31 @@
-# Virtual environments (root or nested)
+# Virtual environments (matched at any depth)
 env/
 venv/
 .venv/
 ENV/
-**/env/
-**/venv/
-**/.venv/
-**/ENV/
+
 # Secrets
 .env
 .env.*
 !.env.example
+
+# Python build/cache artifacts
 __pycache__/
 *.py[cod]
-.venv/
+*.egg-info/
 .pytest_cache/
 .mypy_cache/
-*.egg-info/
-runtime_data/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Runtime output (logs, session storage, vector indexes)
 /logs/
 /output/
-.pytest_cache/
+runtime_data/
+*.log
+
+# Local-only data
+documents_archive/
+
+# OS files
 .DS_Store
-documents_archive
