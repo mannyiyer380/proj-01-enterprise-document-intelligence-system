@@ -781,6 +781,12 @@ The image installs `libgomp1` (needed by fastembed's ONNX runtime on slim images
 | MCP client/server, LLM gateway | Not started; the app calls providers directly |
 | Scale | Single server only (local files, in-process locks and cache) |
 
+### Known gaps
+
+| Gap | Risk | Fix |
+|---|---|---|
+| The same-origin (CSRF) check in [`main.py`](../app/main.py) covers only `POST` and `DELETE`, not the new `PUT` endpoints (`/api/instructions/{workflow}`, `/api/reviews/{review_id}`) | Low: the `edis_login` cookie is `SameSite=Strict`, so most browsers won't send it on cross-site requests | Add `"PUT"` to the method check: `request.method in ("POST", "PUT", "DELETE")` |
+
 ### How to update this document
 
 When you change code, update the matching section:
