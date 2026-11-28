@@ -30,3 +30,6 @@ documents_archive/
 # Editor / OS files
 .vscode/
 .DS_Store
+
+# Files saved by the document downloader
+data_downloading_script/downloads/

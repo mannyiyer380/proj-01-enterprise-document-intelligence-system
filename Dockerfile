@@ -13,6 +13,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# libgomp1 is the OpenMP runtime that onnxruntime (used by fastembed) needs on slim images
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies first so this layer is cached between code changes
 COPY requirements.txt .
 RUN pip install -r requirements.txt
