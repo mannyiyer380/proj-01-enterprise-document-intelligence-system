@@ -39,6 +39,38 @@ tests/                   # Pytest suite (model calls are mocked)
 .github/workflows/       # CI: flake8 and pytest on every push and pull request
 ```
 
+## Implementation status
+
+✅ done · ⏳ pending
+
+### Architecture layers
+
+| Layer | Status | What EDIS includes |
+| --- | --- | --- |
+| UI | ✅ | HTML, CSS and JavaScript. Login, signup and workspace pages. |
+| API | ✅ | FastAPI endpoints for upload, chat, analysis, comparison, review and health checks. |
+| AI | ✅ | LangChain and LangGraph workflows. OpenAI is the default provider; Groq and Gemini can be selected with `LLM_PROVIDER`. |
+| Data | ✅ | Chroma vector index, SQLite for accounts, and local JSON storage for chat history and review decisions. |
+| Cloud / deployment | ⏳ | A Dockerfile is available, but the image build has not been verified. AWS ECS Fargate deployment is pending. |
+| Monitoring / tracing | ✅ | `structlog` JSONL logs, request IDs and optional LangSmith traces. Infrastructure dashboards and alerts are pending. |
+| Evaluation | ✅ | An offline Document Chat benchmark that checks facts, citations, missing evidence and routing. |
+| Security | ✅ | Login, password hashing, JWT support, session ownership, upload validation and trace masking. |
+| Testing | ✅ | Flake8, pytest and a GitHub Actions workflow on pushes and pull requests. 31 tests pass locally. |
+
+### Features
+
+| Feature | Status | What EDIS includes |
+| --- | --- | --- |
+| Validation (Pydantic) | ✅ | API schemas, intent routing and structured result validation. |
+| Guardrails | ✅ | One retry for an invalid intent, citation ID validation, and a safe response when no evidence is found. |
+| Evaluation | ✅ | Seven benchmark cases for Document Chat. |
+| MCP client / server | ⏳ | Pending. |
+| Human-in-the-loop | ✅ | **Approve** and **Request changes** for Analysis and Compare, with saved review notes. |
+| Memory | ✅ | Separate histories for General Chat and Document Chat. Users can resume after a refresh in the same tab, or start a **New Chat**. |
+| Caching | ✅ | In-memory `cachetools` cache for Analysis and Compare results. |
+| LLM gateway | ⏳ | Pending. The app calls providers directly. |
+| Async | ✅ | Upload, dataset loading, analysis and comparison use async API routes. Blocking work runs in a thread pool. |
+
 ## Getting started
 
 Requires **Python 3.12**.
