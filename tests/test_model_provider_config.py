@@ -7,7 +7,7 @@ from app.utils.model_provider import ModelProvider
 
 
 class ModelProviderConfigTests(unittest.TestCase):
-    def test_defaults_chat_and_analysis_to_groq_even_with_other_keys(self):
+    def test_defaults_chat_and_analysis_to_openai_even_with_other_keys(self):
         environment = {
             "OPENAI_API_KEY": "test-openai-key",
             "GROQ_API_KEY": "test-groq-key",
@@ -17,10 +17,10 @@ class ModelProviderConfigTests(unittest.TestCase):
         with patch.dict(os.environ, environment, clear=True):
             settings = Settings.from_env()
 
-        self.assertEqual(settings.llm_provider, "groq")
-        self.assertEqual(settings.chat_provider, "groq")
+        self.assertEqual(settings.llm_provider, "openai")
+        self.assertEqual(settings.chat_provider, "openai")
         self.assertEqual(settings.embedding_provider, "huggingface")
-        self.assertEqual(ModelProvider(settings).model.runnable.model_name, settings.groq_chat_model)
+        self.assertEqual(ModelProvider(settings).model.model_name, settings.openai_chat_model)
 
     def test_requires_openai_key_instead_of_falling_back_to_another_llm_provider(self):
         environment = {
@@ -54,7 +54,7 @@ class ModelProviderConfigTests(unittest.TestCase):
 
     def test_chat_override_can_use_a_different_provider(self):
         environment = {
-            "CHAT_LLM_PROVIDER": "openai",
+            "CHAT_LLM_PROVIDER": "groq",
             "GROQ_API_KEY": "test-groq-key",
             "OPENAI_API_KEY": "test-openai-key",
             "HF_TOKEN": "test-huggingface-token",
@@ -62,5 +62,5 @@ class ModelProviderConfigTests(unittest.TestCase):
         with patch.dict(os.environ, environment, clear=True):
             settings = Settings.from_env()
 
-        self.assertEqual(settings.llm_provider, "groq")
-        self.assertEqual(settings.chat_provider, "openai")
+        self.assertEqual(settings.llm_provider, "openai")
+        self.assertEqual(settings.chat_provider, "groq")

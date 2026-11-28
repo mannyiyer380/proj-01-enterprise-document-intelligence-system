@@ -13,7 +13,7 @@ from app.utils.custom_logger import DocumentIntelligenceLogger
 def test_console_progress_and_structured_failure_details(tmp_path, monkeypatch, capsys):
     settings = Settings(
         auth_mode="local", storage_dir=tmp_path / "storage",
-        groq_api_key="test-key", huggingface_token="test-token",
+        openai_api_key="test-key", huggingface_token="test-token",
     )
     monkeypatch.setattr(Settings, "from_env", classmethod(lambda cls: settings))
     main = importlib.import_module("app.main")

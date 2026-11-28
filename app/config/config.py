@@ -20,7 +20,7 @@ class Settings:
     storage_dir: Path | None = None
     dataset_dir: Path = Path(__file__).resolve().parents[2] / "documents"
     output_dir: Path = Path(__file__).resolve().parents[2] / "output"
-    llm_provider: str = "groq"
+    llm_provider: str = "openai"
     chat_llm_provider: str | None = None
     embedding_provider: str = "huggingface"
     vector_backend: str = "chroma"
