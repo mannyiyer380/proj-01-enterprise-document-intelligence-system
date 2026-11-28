@@ -131,20 +131,36 @@ class IndexService:
                 new_documents.append({"name": document.filename, "sha256": digest, "pages": len(document.pages), "chunks": len(chunks)})
                 new_files.append((file_key, document.content))
             if not new_documents:
+                logger.info(
+                    "document_index_no_changes", message="All submitted documents were already indexed.",
+                    skipped_duplicates=len(documents),
+                )
                 return {"added_documents": 0, "added_chunks": 0, "skipped_duplicates": len(documents)}
 
             texts = [chunk["text"] for chunk in new_chunks]
-            logger.info("document_embedding_started", documents=len(new_documents), chunks=len(texts))
+            logger.info(
+                "document_embedding_started", message="Generating embeddings for the new document chunks.",
+                documents=len(new_documents), chunks=len(texts), embedding_profile=embedding_profile,
+            )
             try:
                 vectors = self._embedder_for(embedding_profile).embed_documents(texts)
             except HuggingFaceCreditsUnavailable:
                 if manifest["documents"]:
                     raise
-                logger.info("embedding_fallback", embedding_profile=LOCAL_EMBEDDING_PROFILE, chunks=len(texts))
                 embedding_profile = LOCAL_EMBEDDING_PROFILE
+                logger.info(
+                    "using_local_huggingface_embeddings",
+                    message="The hosted credits are unavailable. Generating embeddings locally with a Hugging Face model.",
+                    embedding_profile=embedding_profile,
+                    chunks=len(texts),
+                )
                 vectors = self.local_embedder.embed_documents(texts)
             if len(vectors) != len(new_chunks):
-                raise ValueError("Embedding count does not match chunks")
+                raise HTTPException(502, "The embedding provider returned a different number of vectors than requested.")
+            logger.info(
+                "document_index_write_started", message="Embeddings are ready. Saving documents and vectors to the search index.",
+                documents=len(new_documents), vectors=len(vectors),
+            )
             for filename, content in new_files:
                 fpath = folder / filename
                 if not fpath.exists():
@@ -172,13 +188,22 @@ class IndexService:
             manifest["embedding_profile"] = embedding_profile
             manifest["documents"].extend(new_documents)
             self.warehouse.write_json(folder / "manifest.json", manifest)
+            logger.info(
+                "document_index_ready", message="The new documents are indexed and ready to search.",
+                added_documents=len(new_documents), added_chunks=len(new_chunks),
+                skipped_duplicates=len(documents) - len(new_documents),
+            )
             return {"added_documents": len(new_documents), "added_chunks": len(new_chunks), "skipped_duplicates": len(documents) - len(new_documents)}
 
     def search(self, sid: str, owner: str, question: str, k: int = 4) -> list[dict]:
         with self.warehouse.lock:
-            manifest = self.warehouse.owned(sid, owner)
-            profile = self._check_index(manifest)
-            return self._search_chroma(sid, manifest, question, k, self._embedder_for(profile))
+            return self.search_locked(sid, owner, question, k)
+
+    def search_locked(self, sid: str, owner: str, question: str, k: int) -> list[dict]:
+        """Search while the caller holds the warehouse lock for the operation."""
+        manifest = self.warehouse.owned(sid, owner)
+        profile = self._check_index(manifest)
+        return self._search_chroma(sid, manifest, question, k, self._embedder_for(profile))
 
     def _search_chroma(
         self, sid: str, manifest: dict, question: str, k: int, embedder: Embedder

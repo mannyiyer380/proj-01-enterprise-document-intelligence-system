@@ -43,11 +43,17 @@ class LocalHuggingFaceEmbeddings:
     def model(self):
         from fastembed import TextEmbedding
 
+        logger.info(
+            "loading_local_huggingface_embedding_model",
+            message="Loading the Hugging Face embedding model for local use.",
+            model=LOCAL_EMBEDDING_MODEL,
+        )
         try:
             return TextEmbedding(model_name=LOCAL_EMBEDDING_MODEL, threads=4)
         except (OSError, ValueError, RuntimeError) as exc:
-            logger.warning("local_embedding_model_load_failed", error_type=type(exc).__name__)
-            raise HTTPException(503, "The local embedding model could not be loaded. Its first download needs internet access.") from None
+            raise HTTPException(
+                503, "The local embedding model could not be loaded. Its first download needs internet access."
+            ) from exc
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return [vector.tolist() for vector in self.model.passage_embed(texts, batch_size=32)]
@@ -75,6 +81,10 @@ class HuggingFaceEmbeddings:
         except HfHubHTTPError as exc:
             logger.warning(
                 "embedding_provider_error",
+                message=(
+                    "Hugging Face hosted embedding credits are unavailable."
+                    if exc.response.status_code == 402 else "Hugging Face rejected the hosted embedding request."
+                ),
                 provider="huggingface",
                 upstream_status=exc.response.status_code,
                 batch_size=len(texts),
@@ -87,10 +97,10 @@ class HuggingFaceEmbeddings:
                 raise HTTPException(503, "Hugging Face embedding rate limit reached. Try again later.") from None
             raise HTTPException(502, "Hugging Face could not generate embeddings.") from None
         except InferenceTimeoutError:
-            logger.warning("embedding_provider_error", provider="huggingface", reason="timeout")
+            logger.warning("embedding_provider_error", message="Hugging Face did not respond before the embedding timeout.")
             raise HTTPException(504, "Hugging Face embedding request timed out.") from None
         except RequestError:
-            logger.warning("embedding_provider_error", provider="huggingface", reason="connection")
+            logger.warning("embedding_provider_error", message="Could not connect to Hugging Face for hosted embeddings.")
             raise HTTPException(502, "Could not reach Hugging Face Inference.") from None
         if vectors.ndim == 1 and len(texts) == 1:
             vectors = vectors.reshape(1, -1)
@@ -145,23 +155,34 @@ def clean_filename(filename: str | None) -> str:
     return filename
 
 
-async def read_upload(upload: UploadFile, settings: Settings) -> ParsedDocument:
+async def read_upload_bytes(upload: UploadFile, settings: Settings) -> tuple[str, bytes]:
     name = clean_filename(upload.filename)
     max_bytes = settings.max_upload_mb * 1024 * 1024
     # Read at most max_bytes+1, rather than trusting Content-Length.
     raw = await upload.read(max_bytes + 1)
     if len(raw) > max_bytes:
         raise HTTPException(status_code=413, detail=f"File exceeds {settings.max_upload_mb} MB")
+    validate_file_type(name, raw)
+    return name, raw
+
+
+async def read_upload(upload: UploadFile, settings: Settings) -> ParsedDocument:
+    name, raw = await read_upload_bytes(upload, settings)
     return parse_bytes(name, raw, settings)
 
 
-def parse_bytes(filename: str, content: bytes, settings: Settings) -> ParsedDocument:
-    name = clean_filename(filename)
+def validate_file_type(name: str, content: bytes) -> str:
     extension = Path(name).suffix.lower()
     if extension not in SUPPORTED:
         raise HTTPException(status_code=415, detail="Supported extensions: .pdf, .docx, .txt")
     if not content:
         raise HTTPException(status_code=400, detail="Empty document")
+    return extension
+
+
+def parse_bytes(filename: str, content: bytes, settings: Settings) -> ParsedDocument:
+    name = clean_filename(filename)
+    extension = validate_file_type(name, content)
     if len(content) > settings.max_upload_mb * 1024 * 1024:
         raise HTTPException(status_code=413, detail="File too large")
 
@@ -169,23 +190,23 @@ def parse_bytes(filename: str, content: bytes, settings: Settings) -> ParsedDocu
     try:
         if extension == ".pdf":
             if not content.startswith(b"%PDF-"):
-                raise ValueError("Invalid PDF header")
+                raise HTTPException(422, "The file does not have a valid PDF header.")
             import fitz
             with fitz.open(stream=content, filetype="pdf") as pdf:
                 if pdf.is_encrypted:
-                    raise ValueError("Password-protected PDF is not supported")
+                    raise HTTPException(422, "Password-protected PDFs are not supported.")
                 if len(pdf) > settings.max_pages:
                     raise HTTPException(status_code=413, detail="Too many PDF pages")
                 pages = [Page(i + 1, (page.get_text("text") or "").strip()) for i, page in enumerate(pdf)]
         elif extension == ".docx":
             if not zipfile.is_zipfile(io.BytesIO(content)):
-                raise ValueError("Invalid DOCX archive")
+                raise HTTPException(422, "The file is not a valid DOCX archive.")
             with zipfile.ZipFile(io.BytesIO(content)) as z:
                 if "word/document.xml" not in z.namelist():
-                    raise ValueError("Missing DOCX document content")
+                    raise HTTPException(422, "The DOCX archive is missing its document content.")
                 # Prevent archive bombs before allowing extraction through docx2txt.
                 if sum(m.file_size for m in z.infolist()) > settings.max_upload_mb * 1024 * 1024 * 5:
-                    raise ValueError("DOCX decompressed size exceeds limit")
+                    raise HTTPException(422, "The DOCX archive exceeds the size limit after extraction.")
             import docx2txt
             with tempfile.TemporaryDirectory() as temp:
                 path = Path(temp) / "input.docx"
@@ -194,12 +215,15 @@ def parse_bytes(filename: str, content: bytes, settings: Settings) -> ParsedDocu
         else:
             text = content.decode("utf-8-sig")
             if "\x00" in text:
-                raise ValueError("Binary content is not a text file")
+                raise HTTPException(422, "The TXT file contains binary data.")
             pages = [Page(1, text.strip())]
     except HTTPException:
         raise
-    except (ValueError, RuntimeError, OSError, UnicodeError, zipfile.BadZipFile) as exc:
-        raise HTTPException(status_code=422, detail=f"Cannot parse {extension} document: {exc}") from None
+    except (ValueError, RuntimeError, OSError, zipfile.BadZipFile) as exc:
+        detail = f"Could not read the {extension} file. Check that it opens correctly."
+        if extension == ".txt" and isinstance(exc, UnicodeError):
+            detail = "The TXT file could not be decoded. Save it as UTF-8 and try again."
+        raise HTTPException(422, detail) from exc
     if not any(page.text for page in pages):
         raise HTTPException(status_code=422, detail="No extractable text; scanned PDF needs OCR")
     if sum(len(page.text) for page in pages) > settings.max_extracted_chars:
@@ -294,6 +318,7 @@ class DocumentIngestionService:
     def load_dataset(self) -> tuple[list[ParsedDocument], list[dict[str, str]], int]:
         dataset_dir = self.settings.dataset_dir
         files = self.dataset_files()
+        logger.info("dataset_files_found", message="Found files in the server dataset. Reading them for indexing.", files=len(files))
 
         dataset_settings = replace(
             self.settings,
@@ -315,8 +340,9 @@ class DocumentIngestionService:
                     parse_bytes(path.name, path.read_bytes(), dataset_settings)
                 )
             except (HTTPException, OSError) as exc:
-                detail = exc.detail if isinstance(exc, HTTPException) else str(exc)
+                detail = exc.detail if isinstance(exc, HTTPException) else "Could not read the file from disk."
                 skipped.append({"file": relative_name, "reason": str(detail)})
+                logger.warning("dataset_file_skipped", message="Skipped a server dataset file.", file=relative_name, reason=detail)
 
         if not documents:
             raise HTTPException(
