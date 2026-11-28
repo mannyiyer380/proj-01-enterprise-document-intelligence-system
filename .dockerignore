@@ -1,0 +1,35 @@
+# Keep the build context small and keep secrets out of the image.
+
+# Secrets: pass keys at runtime instead (see README)
+.env
+.env.*
+
+# Git and editor files
+.git/
+.gitignore
+.vscode/
+.DS_Store
+
+# Virtual environments
+env/
+venv/
+.venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime data created by the app
+output/
+logs/
+runtime_data/
+
+# Not needed to run the app
+documents_archive/
+data_downloading_script/
+tests/
+Dockerfile
+.dockerignore

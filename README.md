@@ -69,6 +69,21 @@ Open <http://localhost:8080>, create an account, then either click **Load Datase
 
 Use port 8080 unless you also change `CORS_ORIGINS`.
 
+### Run with Docker
+
+```bash
+docker build -t edis .
+
+docker run --rm -p 8080:8080 \
+  -v "$PWD/.env:/app/.env:ro" \
+  -v edis-data:/app/output \
+  edis
+```
+
+- `.env` is mounted read-only at runtime and is never copied into the image (see [`.dockerignore`](.dockerignore)).
+- The `edis-data` volume keeps accounts, sessions and indexes when the container is recreated. Remove it with `docker volume rm edis-data` to start fresh.
+- Then open <http://localhost:8080> as above.
+
 ## Runtime data
 
 The app writes the following folders at runtime. Both are git-ignored:
