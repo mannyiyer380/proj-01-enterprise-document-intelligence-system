@@ -20,7 +20,7 @@ class Settings:
     storage_dir: Path | None = None
     dataset_dir: Path = Path(__file__).resolve().parents[2] / "documents"
     output_dir: Path = Path(__file__).resolve().parents[2] / "output"
-    llm_provider: str = "openai"
+    llm_provider: str = "groq"
     chat_llm_provider: str | None = None
     embedding_provider: str = "huggingface"
     vector_backend: str = "chroma"
@@ -28,7 +28,7 @@ class Settings:
     groq_api_key: str = ""
     openai_api_key: str = field(default="", repr=False)
     huggingface_token: str = field(default="", repr=False)
-    google_chat_model: str = "gemini-3.5-flash"
+    google_chat_model: str = "gemini-3.5-flash-lite"
     groq_chat_model: str = "qwen/qwen3.8-27b"
     openai_chat_model: str = "gpt-4.1-mini"
     groq_fallback_models: tuple[str, ...] = ("openai/gpt-oss-120b", "openai/gpt-oss-20b")
@@ -55,13 +55,13 @@ class Settings:
 
     @property
     def chat_provider(self) -> str:
-        return self.chat_llm_provider or ("openai" if self.openai_api_key else self.llm_provider)
+        return self.chat_llm_provider or self.llm_provider
 
     @classmethod
     def from_env(cls) -> "Settings":
         storage_dir = os.getenv("STORAGE_DIR")
-        google_api_key = os.getenv("GOOGLE_API_KEY", "")
-        groq_api_key = os.getenv("GROQ_API_KEY", "")
+        google_api_key = os.getenv("GOOGLE_API_KEY", "").strip()
+        groq_api_key = os.getenv("GROQ_API_KEY", "").strip()
         huggingface_token = (
             os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACEHUB_API_TOKEN") or ""
         ).strip()
@@ -76,7 +76,7 @@ class Settings:
             storage_dir=Path(storage_dir).resolve() if storage_dir else cls.storage_dir,
             dataset_dir=Path(os.getenv("DATASET_DIR", str(cls.dataset_dir))).resolve(),
             output_dir=Path(os.getenv("OUTPUT_DIR", str(cls.output_dir))).resolve(),
-            llm_provider=os.getenv("LLM_PROVIDER", default_llm).lower(),
+            llm_provider=os.getenv("LLM_PROVIDER", "").strip().lower() or default_llm,
             chat_llm_provider=(os.getenv("CHAT_LLM_PROVIDER") or "").strip().lower() or None,
             embedding_provider=os.getenv("EMBEDDING_PROVIDER", cls.embedding_provider).lower(),
             vector_backend=os.getenv("VECTOR_BACKEND", cls.vector_backend).lower(),
@@ -84,9 +84,9 @@ class Settings:
             groq_api_key=groq_api_key,
             openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
             huggingface_token=huggingface_token,
-            google_chat_model=os.getenv("GOOGLE_CHAT_MODEL", cls.google_chat_model),
-            groq_chat_model=os.getenv("GROQ_CHAT_MODEL", cls.groq_chat_model),
-            openai_chat_model=os.getenv("OPENAI_CHAT_MODEL", cls.openai_chat_model),
+            google_chat_model=os.getenv("GOOGLE_CHAT_MODEL", "").strip() or cls.google_chat_model,
+            groq_chat_model=os.getenv("GROQ_CHAT_MODEL", "").strip() or cls.groq_chat_model,
+            openai_chat_model=os.getenv("OPENAI_CHAT_MODEL", "").strip() or cls.openai_chat_model,
             google_embedding_model=os.getenv("GOOGLE_EMBEDDING_MODEL", cls.google_embedding_model),
             huggingface_embedding_model=os.getenv(
                 "HUGGINGFACE_EMBEDDING_MODEL", cls.huggingface_embedding_model

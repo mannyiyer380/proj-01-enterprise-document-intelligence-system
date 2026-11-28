@@ -18,7 +18,7 @@ EDIS_LOG_FILENAME = re.compile(r"edis_(?:\d{4}_\d{6}|\d{8}T\d{6}_\d{6}Z)\.jsonl"
 
 
 class DocumentIntelligenceLogger:
-    """Create named JSON loggers that write to both a file and the console."""
+    """Write structured JSON lines to disk and to the console."""
 
     _configuration_lock = threading.Lock()
     _retention_lock = threading.Lock()
@@ -70,6 +70,7 @@ class DocumentIntelligenceLogger:
         stdlib_logger = logging.getLogger(logger_name)
         stdlib_logger.setLevel(self.level)
         stdlib_logger.propagate = False
+        formatter = logging.Formatter("%(message)s")
 
         file_path = str(self.log_file_path)
         has_file_handler = any(
@@ -81,7 +82,7 @@ class DocumentIntelligenceLogger:
                 self.log_file_path, encoding="utf-8"
             )
             file_handler.setLevel(self.level)
-            file_handler.setFormatter(logging.Formatter("%(message)s"))
+            file_handler.setFormatter(formatter)
             file_handler._edis_file_path = file_path  # type: ignore[attr-defined]
             stdlib_logger.addHandler(file_handler)
             self._managed_handlers.append((stdlib_logger, file_handler))
@@ -94,7 +95,7 @@ class DocumentIntelligenceLogger:
         if self.console and not has_console_handler:
             console_handler = logging.StreamHandler()
             console_handler.setLevel(self.level)
-            console_handler.setFormatter(logging.Formatter("%(message)s"))
+            console_handler.setFormatter(formatter)
             console_handler._edis_console = True  # type: ignore[attr-defined]
             stdlib_logger.addHandler(console_handler)
             self._managed_handlers.append((stdlib_logger, console_handler))

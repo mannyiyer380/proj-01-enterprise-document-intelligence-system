@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import traceback
+from pathlib import Path
 from types import ModuleType, TracebackType
 from typing import TypeAlias
 
@@ -47,6 +48,29 @@ class DocumentIntelligenceError(Exception):
         )
 
         super().__init__(self.error_message)
+
+    def log_fields(self) -> dict[str, object]:
+        """Return diagnostics without dumping exception text or request data."""
+        error = self.original_exception
+        if error is None:
+            return {"error_type": type(self).__name__}
+
+        frames = traceback.extract_tb(error.__traceback__)
+        fields: dict[str, object] = {"error_type": type(error).__name__}
+        if frames:
+            fields["source"] = f"{Path(self.file_name).name}:{self.lineno}"
+            fields["traceback_frames"] = [
+                {"file": frame.filename, "line": frame.lineno, "function": frame.name}
+                for frame in frames
+            ]
+        cause = error.__cause__ or error.__context__
+        if cause is not None:
+            fields["cause_type"] = type(cause).__name__
+            cause_frames = traceback.extract_tb(cause.__traceback__)
+            if cause_frames:
+                origin = cause_frames[-1]
+                fields["cause_source"] = f"{Path(origin.filename).name}:{origin.lineno}"
+        return fields
 
     @staticmethod
     def _resolve_exception_info(
