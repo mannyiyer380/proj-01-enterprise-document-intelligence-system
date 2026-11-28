@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css?v=account-1" />
+  <link rel="stylesheet" href="/static/styles.css?v=custom-instructions-1" />
 </head>
 <body>
   <header class="site-header">
@@ -98,6 +98,7 @@
             <article class="chat-panel" aria-label="Chat with EDIS">
               <div class="chat-panel-head">
                 <div><span class="avatar avatar-ai" aria-hidden="true">E</span><strong>EDIS Assistant</strong></div>
+                <button id="new-chat-btn" class="button button-small button-secondary" type="button" disabled>New Chat</button>
               </div>
               <div id="chat-history" class="chat-history" role="log" aria-label="Conversation" tabindex="0">
                 <p id="chat-intro" class="chat-intro">Say hello, or load documents to ask about their contents.</p>
@@ -131,6 +132,12 @@
                 <span class="upload-title">Drag &amp; drop or <strong>browse</strong></span>
                 <input id="analyze-file" class="file-control" type="file" accept=".pdf,.docx,.txt" />
               </label>
+              <details class="instruction-settings" id="analysis-instructions-panel">
+                <summary>Custom instructions (optional)</summary>
+                <textarea id="analysis-instructions" aria-label="Custom analysis instructions" rows="3" maxlength="1200" placeholder="Summarize in Hindi and highlight key dates and amounts."></textarea>
+                <button id="analysis-instructions-save" class="button button-small button-secondary" type="button">Save as my default</button>
+                <p id="analysis-instructions-status" class="instruction-status" role="status"></p>
+              </details>
               <button id="analyze-btn" class="button button-primary" type="button">Generate Summary</button>
             </article>
             <article class="output-card"><span class="output-label">Analysis result</span><div id="analyze-result" class="result-content" aria-live="polite">Upload a document to generate a summary.</div></article>
@@ -154,6 +161,12 @@
                   <input id="updated-file" type="file" accept=".pdf,.docx,.txt" />
                 </label>
               </div>
+              <details class="instruction-settings" id="compare-instructions-panel">
+                <summary>Custom instructions (optional)</summary>
+                <textarea id="compare-instructions" aria-label="Custom comparison instructions" rows="3" maxlength="1200" placeholder="Focus on changes to fees, deadlines, and policy terms."></textarea>
+                <button id="compare-instructions-save" class="button button-small button-secondary" type="button">Save as my default</button>
+                <p id="compare-instructions-status" class="instruction-status" role="status"></p>
+              </details>
               <button id="compare-btn" class="button button-primary" type="button">Compare Documents</button>
             </article>
             <article class="output-card"><span class="output-label">Comparison result</span><div id="compare-result" class="result-content" aria-live="polite">Choose two documents to start.</div></article>
@@ -167,6 +180,6 @@
     <span id="processing-message"></span>
   </div>
 
-  <script src="/static/app.js?v=account-1"></script>
+  <script src="/static/app.js?v=custom-instructions-1"></script>
 </body>
 </html>

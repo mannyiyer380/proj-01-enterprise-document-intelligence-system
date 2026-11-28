@@ -2,6 +2,15 @@ const signup = window.location.pathname === '/signup';
 const form = document.getElementById('account-form');
 const submit = document.getElementById('account-submit');
 const errorMessage = document.getElementById('account-error');
+const password = document.getElementById('password');
+const passwordToggle = document.getElementById('password-toggle');
+
+passwordToggle.addEventListener('click', () => {
+  const visible = password.type === 'password';
+  password.type = visible ? 'text' : 'password';
+  passwordToggle.setAttribute('aria-pressed', String(visible));
+});
+passwordToggle.hidden = false;
 
 if (signup) {
   document.title = 'Create an account | EDIS';
@@ -10,7 +19,6 @@ if (signup) {
   const link = document.getElementById('account-link');
   link.href = '/login';
   link.textContent = 'Sign in';
-  const password = document.getElementById('password');
   password.autocomplete = 'new-password';
   password.minLength = 15;
   password.setAttribute('aria-describedby', 'password-hint');

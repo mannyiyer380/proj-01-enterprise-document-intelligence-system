@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark" />
   <title>Sign in | EDIS</title>
-  <link rel="stylesheet" href="/static/styles.css?v=account-1" />
-  <script src="/static/account.js" defer></script>
+  <link rel="stylesheet" href="/static/styles.css?v=account-2" />
+  <script src="/static/account.js?v=account-2" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -25,7 +25,16 @@
         <label for="username">Username</label>
         <input id="username" name="username" required minlength="3" maxlength="32" autocomplete="username" autocapitalize="none" spellcheck="false" />
         <label for="password">Password</label>
-        <input id="password" name="password" type="password" required maxlength="128" autocomplete="current-password" />
+        <div class="password-field">
+          <input id="password" name="password" type="password" required maxlength="128" autocomplete="current-password" autocapitalize="none" spellcheck="false" />
+          <button id="password-toggle" class="password-toggle" type="button" aria-label="Show password" aria-controls="password" aria-pressed="false" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+              <circle cx="12" cy="12" r="2.5" />
+              <path class="password-toggle-slash" d="m4 4 16 16" />
+            </svg>
+          </button>
+        </div>
         <p id="password-hint" class="account-hint" hidden>Use at least 15 characters.</p>
         <button id="account-submit" class="button button-primary" type="submit">Sign in</button>
         <p id="account-error" class="account-error" role="alert" hidden></p>
