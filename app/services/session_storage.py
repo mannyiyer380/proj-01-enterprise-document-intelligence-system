@@ -10,10 +10,12 @@ import tempfile
 import threading
 import uuid
 from datetime import datetime, timezone
+from hashlib import sha256
 from pathlib import Path
 
 from fastapi import HTTPException
 
+from app.ai_module.schemas import DocumentWorkflow, InstructionDefaults
 from app.security import require_session_id
 
 
@@ -26,6 +28,28 @@ class SessionStorage:
         self.root = root.resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.lock = threading.RLock()
+        self.general_chat_lock = threading.RLock()
+        self.instruction_defaults_lock = threading.Lock()
+
+    def general_history_path(self, owner: str) -> Path:
+        owner_key = sha256(owner.encode("utf-8")).hexdigest()
+        return self.root.parent / "general_chat" / f"{owner_key}.json"
+
+    def _instruction_defaults_path(self, owner: str) -> Path:
+        owner_key = sha256(owner.encode("utf-8")).hexdigest()
+        return self.root.parent / "instruction_defaults" / f"{owner_key}.json"
+
+    def instruction_defaults(self, owner: str) -> InstructionDefaults:
+        with self.instruction_defaults_lock:
+            values = self.read_json(self._instruction_defaults_path(owner), fallback={})
+        return InstructionDefaults.model_validate(values)
+
+    def save_instruction_default(self, owner: str, workflow: DocumentWorkflow, instructions: str) -> None:
+        path = self._instruction_defaults_path(owner)
+        with self.instruction_defaults_lock:
+            values = self.read_json(path, fallback={})
+            values[workflow] = instructions
+            self.write_json(path, values)
 
     def path(self, sid: str) -> Path:
         require_session_id(sid)
